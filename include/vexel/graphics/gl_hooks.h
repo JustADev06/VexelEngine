@@ -18,7 +18,9 @@ namespace vexel
     }
 
     inline void hook_glCreateBuffers(GLsizei n, GLuint * buffers);
+    inline void hook_glCreateSamplers(GLsizei n, GLuint * samplers);
     inline void hook_glCreateTextures(GLenum target, GLsizei n, GLuint * textures);
+    inline void hook_glDeleteSamplers(GLsizei count, const GLuint * samplers);
 
     __Proc gl_hooks_gl_hook_proc(const char *name);
 }

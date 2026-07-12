@@ -398,7 +398,7 @@ namespace vexel
                     {
                     case TextureFormat::SRGB888:
                     case TextureFormat::SRGBA8888: glSamplerParameterfv(sampler_->handle(), GL_TEXTURE_BORDER_COLOR, border_color_.rgba_f32); break;
-                    case TextureFormat::STENCIL8: break; // Yeah sadly there's no border color stencil textures, because you can't even sample them explicitly
+                    case TextureFormat::STENCIL8: break; // Yeah sadly there's no border color stencil textures, because you can and can't even sample them explicitly really, but why would you
                     case TextureFormat::DEPTH16:
                     case TextureFormat::DEPTH24:
                     case TextureFormat::DEPTH32F:

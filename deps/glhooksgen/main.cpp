@@ -142,7 +142,7 @@ int main(int argc, char **argv)
                     gl_hooks_cpp_strm << "    inline " << match[1] << ' ' << "hook_" << func_name << '(' << args << ")\n"
                                       << "    {" << '\n'
                                       << "        static " << (*func) << " sdl_func = reinterpret_cast<" << (*func) << " >(SDL_GL_GetProcAddress(\"" << func_name << "\"));\n"
-                                      << "        std::function<" << match[1] << " ("; // We'll finish later, after building just the typenames list
+                                      << "        std::function<void ("; // We'll finish later, after building just the typenames list
 
                     std::string type_list = "";
                     std::string call_list = "";
@@ -162,12 +162,12 @@ int main(int argc, char **argv)
                     type_list = type_list.substr(0, type_list.length() - 1);
                     call_list = call_list.substr(0, call_list.length() - 1);
                     
-                    gl_hooks_cpp_strm << type_list << ")> hook = reinterpret_cast<" << match[1] << " (*)(" << type_list << ")>(gl_hooks_hooks.at(\"" << func_name << "\").first);\n"
+                    gl_hooks_cpp_strm << type_list << ")> hook = reinterpret_cast<void (*)(" << type_list << ")>(gl_hooks_hooks.at(\"" << func_name << "\").first);\n"
+                                      << "        std::function<void (" << type_list << ")> end_hook = reinterpret_cast<void (*)(" << type_list << ")>(gl_hooks_hooks.at(\"" << func_name << "\").second);\n"
                                       << '\n'
                                       << "        hook(" << call_list << ");\n";
                                       if(is_void_ret) { gl_hooks_cpp_strm << "        sdl_func(" << call_list << ");\n"; } else { gl_hooks_cpp_strm << "        auto ret_value = sdl_func(" << call_list << ");\n"; }
-                    gl_hooks_cpp_strm << "        auto end_hook = gl_hooks_hooks.at(\"" << func_name << "\").second;\n"
-                                      << "        end_hook ? end_hook() : void(0);\n"
+                    gl_hooks_cpp_strm << "        end_hook ? end_hook(" << call_list << ") : void(0);\n"
                                       << (!is_void_ret ? "        return ret_value;\n" : "")
                                       << "    }\n\n";
                 }
@@ -177,12 +177,12 @@ int main(int argc, char **argv)
                     gl_hooks_cpp_strm << "    inline " << match[1] << ' ' << "hook_" << func_name << "()\n"
                                       << "    {\n"
                                       << "        static " << (*func) << " sdl_func = reinterpret_cast<" << (*func) << ">(SDL_GL_GetProcAddress(\"" << func_name << "\"));\n"
-                                      << "        std::function<" << match[1] << "()> hook = reinterpret_cast<" << match[1] << " (*)()>(gl_hooks_hooks.at(\"" << func_name << "\").first);\n"
+                                      << "        std::function<void ()> hook = reinterpret_cast<void (*)()>(gl_hooks_hooks.at(\"" << func_name << "\").first);\n"
+                                      << "        std::function<void ()> end_hook = reinterpret_cast<void (*)()>(gl_hooks_hooks.at(\"" << func_name << "\").second);\n"
                                       << '\n'
                                       << "        hook();\n";
                                       if(is_void_ret) { gl_hooks_cpp_strm << "        sdl_func();\n"; } else { gl_hooks_cpp_strm << "        auto ret_value = sdl_func();\n"; }
-                    gl_hooks_cpp_strm << "        auto end_hook = gl_hooks_hooks.at(\"" << func_name << "\").second;\n"
-                                      << "        end_hook ? end_hook() : void(0);\n"
+                    gl_hooks_cpp_strm << "        end_hook ? end_hook() : void(0);\n"
                                       << (!is_void_ret ? "        return ret_value;\n" : "")
                                       << "    }\n\n";   
                 }

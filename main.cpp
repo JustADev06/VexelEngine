@@ -12,6 +12,7 @@
 #include "vexel/graphics/cubemap.h"
 #include "vexel/graphics/sampler.h"
 #include "vexel/graphics/texture_view.h"
+#include "vexel/graphics/gl_debugger.h"
 #include "vexel/math/utils.h"
 #include "vexel/graphics/device.h"
 #include "vexel/graphics/gl_hooks.h"
@@ -154,8 +155,11 @@ int main()
 
     SDL_GLContext context = SDL_GL_CreateContext(window);
     SDL_GL_MakeCurrent(window, context);
+    //vexel::GLDebugger gl_debugger{};
     vexel::gl_hooks_set_hook_callback("glCreateTextures", gl_create_textures_hook, gl_create_textures_hook_end);
     vexel::gl_hooks_set_hook_callback("glCreateBuffers", gl_create_buffers_hook, (void*)0);
+    vexel::gl_hooks_set_hook_callback("glCreateSamplers", vexel::gl_debugger_hook_gl_create_samplers, vexel::gl_debugger_hook_gl_create_samplers_end);
+    vexel::gl_hooks_set_hook_callback("glDeleteSamplers", vexel::gl_debugger_hook_gl_delete_samplers, (void*)0);
     auto version = gladLoadGL(vexel::gl_hooks_gl_hook_proc);
     if(!version)
     {
@@ -591,7 +595,10 @@ int main()
         SDL_GL_SwapWindow(window);
     }
 
-    
+    // This won't capture the deletes because the samplers go out of scope later, down below, when the scope of int main() ends to be exact, but i'm sure they would
+    // if we were to delete them beforehand
+    auto &gl_debugger = vexel::GLDebugger::gl_debugger();
+    std::cout << '\n' << gl_debugger.log_strm().str() << '\n';
 
     return 0;
 }

@@ -44,7 +44,7 @@ add_custom_target(generate_debug_hooks DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/incl
 add_custom_command(OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/include/vexel/graphics/gl_hooks.h"
                           "${CMAKE_CURRENT_SOURCE_DIR}/src/graphics/gl_hooks.cpp"
                           
-                   COMMAND $<TARGET_FILE:glhooksgen> -include vexel/graphics glCreateTextures glCreateBuffers
+                   COMMAND $<TARGET_FILE:glhooksgen> -include vexel/graphics glCreateTextures glCreateBuffers glCreateSamplers glDeleteSamplers
                    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/deps/glhooksgen/output/gl_hooks.h" "${CMAKE_CURRENT_SOURCE_DIR}/include/vexel/graphics/gl_hooks.h"
                    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/deps/glhooksgen/output/gl_hooks.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/src/graphics/gl_hooks.cpp"
 
