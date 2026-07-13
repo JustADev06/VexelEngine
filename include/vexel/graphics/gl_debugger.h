@@ -6,7 +6,7 @@
 #include <sstream>
 #include <vector>
 
-#include "glad/gl.h" 
+#include "glad/gl.h"
 
 namespace vexel
 {
@@ -22,19 +22,33 @@ namespace vexel
 
     struct GLSamplerState
     {
+        enum class BorderColorType : std::uint8_t
+        {
+            INT,
+            SIGNED_INT_NORMALIZED, // Should be passed to the [-1, 1] when the format is known
+            UINT,
+            FLOAT
+        };
+
         GLuint sampler;
         GLint u_mode; // GL_TEXTURE_WRAP_S
         GLint v_mode; // GL_TEXTURE_WRAP_T
         GLint w_mode; // GL_TEXTURE_WRAP_R
         GLint minification_filter; // GL_TEXTURE_MIN_FILTER
         GLint magnification_filter; // GL_TEXTURE_MAGNIFICATION_FILTER
-        GLfloat border_color[4]; // GL_TEXTURE_BORDER_COLOR default: (0.0, 0.0, 0.0, 0.0)
+        union
+        {
+            GLfloat border_color[4]; // GL_TEXTURE_BORDER_COLOR default: (0.0, 0.0, 0.0, 0.0)
+            GLint border_color_int[4];
+            GLuint border_color_uint[4];
+        };
+        BorderColorType border_color_type;
         GLfloat min_lod; // GL_TEXTURE_MIN_LOD default: -1000
         GLfloat max_lod; // GL_TEXTURE_MAX_LOD default: 1000
         GLfloat lod_bias; // GL_TEXTURE_LOD_BIAS default: 0
-        GLint compare_mode; // GL_TEXTURE_COMPARE_MODE default: GL_NONE = 0 (just as a guess)
         GLint compare_func; // GL_TEXTURE_COMPARE_FUNC default: GL_LESS (just as a guess)
-        bool initialized[10]; // Marks each part of the state whether was set or no
+        GLint compare_mode; // GL_TEXTURE_COMPARE_MODE default: GL_NONE = 0 (just as a guess)
+        bool initialized[11]; // Marks each part of the state whether was set or no
     };
 
     void gl_debugger_hook_gl_sampler_parameter_f(GLuint sampler, GLenum pname, GLfloat param);
@@ -77,6 +91,7 @@ namespace vexel
             : gl_current_vao_(0)
             , gl_current_program_(0)
             , gl_current_framebuffer_(0)
+            , sampler_count_(0)
             , gl_objects_()
             , gl_objects_reverse_()
             , gl_sampler_states_()
@@ -97,10 +112,14 @@ namespace vexel
         GLuint gl_current_vao_;
         GLuint gl_current_program_;
         GLuint gl_current_framebuffer_;
-        
+
+
         std::unordered_map<std::string, std::pair<GLuint, GLObjectType>> gl_objects_;
         std::unordered_map<std::pair<GLuint, GLObjectType>, std::string, __PairHash> gl_objects_reverse_;
+
         std::vector<GLSamplerState> gl_sampler_states_;
+        std::size_t sampler_count_;
+
         std::stringstream log_strm_;
     };
 }

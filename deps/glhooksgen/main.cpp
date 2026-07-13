@@ -18,7 +18,7 @@ int main(int argc, char **argv)
         for(auto i = 1u; i < argc; i++)
         {
             if(look_for_flags)
-            {   
+            {
                 if(auto str = std::string(argv[i]); str.find('-') != std::string::npos)
                 {
                     if(!include_directory_provided)
@@ -61,12 +61,12 @@ int main(int argc, char **argv)
         {
             if(!_func_names[i].empty())
             {
-                func_names[index] = _func_names[i];    
+                func_names[index] = _func_names[i];
                 func_proc_names[index] = _func_proc_names[i];
                 index++;
             }
         }
-        
+
         // Imagine hardcoding paths in your code, lol
         std::filesystem::path gl_h_file_path = std::filesystem::path(CMAKE_CURRENT_SOURCE_DIR) / std::filesystem::path("../glad/include/glad/gl.h");
         std::ifstream gl_h_file(gl_h_file_path, std::ios::in);
@@ -84,13 +84,13 @@ int main(int argc, char **argv)
         std::regex r(R"(typedef\s+([^\s]+)\s+\(GLAD_API_PTR\s+\*(.*)\)\(([^)]*)\);)");
         std::regex arg_r(R"(\s*([^,]+))");
         std::regex arg_process_r(R"((.*)\s(.*))");
-        
+
         std::stringstream gl_hooks_cpp_strm{};
         std::stringstream gl_hooks_header_strm{};
 
         gl_hooks_header_strm << "#pragma once\n"
                              << '\n'
-                             << "#include <string>\n"
+                             << "#include <string_view>\n"
                              << "#include <unordered_map>\n\n"
                              << "#include \"glad/gl.h\"\n"
                              << '\n'
@@ -111,7 +111,7 @@ int main(int argc, char **argv)
                           << "#include \"SDL3/SDL.h\"\n"
                           << "#include \"" << (std::filesystem::path(include_dir) / std::filesystem::path("gl_hooks.h")).string() << "\"\n\n"
                           << "namespace " << ENGINE_NAME << '\n' //"#include " /* This should be specified when already copied, sorry */
-                          << "{\n" 
+                          << "{\n"
                           << "    static const std::unordered_map<std::string_view, __Proc> hooked_funcs =\n"
                           << "    {\n";
         for(auto i = 0u; i < (argc - 3); i++)
@@ -122,7 +122,7 @@ int main(int argc, char **argv)
 
         gl_hooks_cpp_strm << '\n'; // We'll now start writing the definitions of the functions
 
-        std::vector<std::string> check_vector{}; // This will be used for the check, whether we found all function names provided 
+        std::vector<std::string> check_vector{}; // This will be used for the check, whether we found all function names provided
         for(std::sregex_iterator it(gl_h_file_string.cbegin(), gl_h_file_string.cend(), r);
             it != std::sregex_iterator{};
             it++)
@@ -134,10 +134,10 @@ int main(int argc, char **argv)
                 bool is_void_ret = match[1] == "void";
 
                 check_vector.push_back(func_name); // For checking later
-                
+
                 if(auto args = match[3].str(); !args.empty())
                 {
-                    gl_hooks_header_strm << "    inline " << match[1] << " hook_" << func_name << '(' << args << ");\n"; 
+                    gl_hooks_header_strm << "    inline " << match[1] << " hook_" << func_name << '(' << args << ");\n";
 
                     gl_hooks_cpp_strm << "    inline " << match[1] << ' ' << "hook_" << func_name << '(' << args << ")\n"
                                       << "    {" << '\n'
@@ -154,14 +154,14 @@ int main(int argc, char **argv)
                         std::smatch _match;
                         if(std::regex_match(arg, _match, arg_process_r))
                         {
-                            type_list += (_match[1].str() + ",");  
+                            type_list += (_match[1].str() + ",");
                             call_list += (_match[2].str() + ",");
                         }
                     }
 
                     type_list = type_list.substr(0, type_list.length() - 1);
                     call_list = call_list.substr(0, call_list.length() - 1);
-                    
+
                     gl_hooks_cpp_strm << type_list << ")> hook = reinterpret_cast<void (*)(" << type_list << ")>(gl_hooks_hooks.at(\"" << func_name << "\").first);\n"
                                       << "        std::function<void (" << type_list << ")> end_hook = reinterpret_cast<void (*)(" << type_list << ")>(gl_hooks_hooks.at(\"" << func_name << "\").second);\n"
                                       << '\n'
@@ -184,11 +184,11 @@ int main(int argc, char **argv)
                                       if(is_void_ret) { gl_hooks_cpp_strm << "        sdl_func();\n"; } else { gl_hooks_cpp_strm << "        auto ret_value = sdl_func();\n"; }
                     gl_hooks_cpp_strm << "        end_hook ? end_hook() : void(0);\n"
                                       << (!is_void_ret ? "        return ret_value;\n" : "")
-                                      << "    }\n\n";   
+                                      << "    }\n\n";
                 }
             }
         }
-        
+
         if(check_vector.size() != (argc - 3))
         {
             std::cout << "Failed to find some function names, check your input names for validity!\n";
@@ -200,7 +200,7 @@ int main(int argc, char **argv)
 
         gl_hooks_cpp_strm << "    __Proc gl_hooks_gl_hook_proc(const char *name)\n"
                           << "    {\n"
-                          << "        if(!gl_hooks_hooks.contains(name))\n"
+                          << "        if(!gl_hooks_hooks.contains(name) || !hooked_funcs.contains(name))\n"
                           << "        {\n"
                           << "            return SDL_GL_GetProcAddress(name);\n"
                           << "        }\n"
@@ -210,7 +210,7 @@ int main(int argc, char **argv)
                           << "        }\n"
                           << "    }\n"
                           << "}\n";
-    
+
         std::filesystem::create_directory(std::filesystem::path(CMAKE_CURRENT_SOURCE_DIR) / std::filesystem::path("output"));
         auto files_path = std::filesystem::path(CMAKE_CURRENT_SOURCE_DIR) / std::filesystem::path("output");
         std::ofstream gl_hooks_header_file(files_path / std::filesystem::path("gl_hooks.h"), std::ios::out);
@@ -218,13 +218,13 @@ int main(int argc, char **argv)
 
         if(!gl_hooks_header_file)
         {
-            std::cout << "Failed to open the gl_hooks.h in the output directory, please ensure that the output directory along with gl_hooks.h exist/s!\n"; 
+            std::cout << "Failed to open the gl_hooks.h in the output directory, please ensure that the output directory along with gl_hooks.h exist/s!\n";
             return -1;
         }
 
         if(!gl_hooks_cpp_file)
         {
-            std::cout << "Failed to open the gl_hooks.cpp in the output directory, please ensure that the output directory along with gl_hooks.cpp exist/s!\n"; 
+            std::cout << "Failed to open the gl_hooks.cpp in the output directory, please ensure that the output directory along with gl_hooks.cpp exist/s!\n";
             return -1;
         }
 

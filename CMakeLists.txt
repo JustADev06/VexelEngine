@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.28)
 include(FetchContent)
 
 project(vexel VERSION 0.0.1 LANGUAGES C CXX)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_executable(${PROJECT_NAME})
 
@@ -43,8 +44,8 @@ add_custom_target(generate_debug_hooks DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/incl
 
 add_custom_command(OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/include/vexel/graphics/gl_hooks.h"
                           "${CMAKE_CURRENT_SOURCE_DIR}/src/graphics/gl_hooks.cpp"
-                          
-                   COMMAND $<TARGET_FILE:glhooksgen> -include vexel/graphics glCreateTextures glCreateBuffers glCreateSamplers glDeleteSamplers
+
+                   COMMAND $<TARGET_FILE:glhooksgen> -include vexel/graphics glCreateTextures glCreateBuffers glCreateSamplers glDeleteSamplers glSamplerParameterf glSamplerParameteri glSamplerParameterfv glSamplerParameteriv glSamplerParameterIiv glSamplerParameterIuiv
                    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/deps/glhooksgen/output/gl_hooks.h" "${CMAKE_CURRENT_SOURCE_DIR}/include/vexel/graphics/gl_hooks.h"
                    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/deps/glhooksgen/output/gl_hooks.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/src/graphics/gl_hooks.cpp"
 

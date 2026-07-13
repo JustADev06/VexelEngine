@@ -38,7 +38,7 @@ void my_callback(GLenum src, GLenum type, GLuint id, GLenum severity, GLsizei le
     case GL_DEBUG_SEVERITY_HIGH: strm << "Error!"; break;
     default: strm << "No severity"; break;
     }
-    
+
     strm << "\n";
 
     switch(src)
@@ -82,7 +82,7 @@ bool CheckShader(GLuint shader, const char* name)
     {
         return true;
     }
-        
+
 
     GLint logLength = 0;
     glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLength);
@@ -105,7 +105,7 @@ bool CheckProgram(GLuint program)
     {
         return true;
     }
-        
+
     glGetProgramiv(program, GL_VALIDATE_STATUS, &success);
     if(success)
     {
@@ -143,7 +143,7 @@ int main()
 {
     bool running = true;
 
-    SDL_Window *window = SDL_CreateWindow("Hello, pizda!", 1024, 768, SDL_WINDOW_OPENGL);    
+    SDL_Window *window = SDL_CreateWindow("Hello, pizda!", 1024, 768, SDL_WINDOW_OPENGL);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
@@ -160,6 +160,12 @@ int main()
     vexel::gl_hooks_set_hook_callback("glCreateBuffers", gl_create_buffers_hook, (void*)0);
     vexel::gl_hooks_set_hook_callback("glCreateSamplers", vexel::gl_debugger_hook_gl_create_samplers, vexel::gl_debugger_hook_gl_create_samplers_end);
     vexel::gl_hooks_set_hook_callback("glDeleteSamplers", vexel::gl_debugger_hook_gl_delete_samplers, (void*)0);
+    vexel::gl_hooks_set_hook_callback("glSamplerParameterf", vexel::gl_debugger_hook_gl_sampler_parameter_f, (void*)0);
+    vexel::gl_hooks_set_hook_callback("glSamplerParameteri", vexel::gl_debugger_hook_gl_sampler_parameter_i, (void*)0);
+    vexel::gl_hooks_set_hook_callback("glSamplerParameterfv", vexel::gl_debugger_hook_gl_sampler_parameter_fv, (void*)0);
+    vexel::gl_hooks_set_hook_callback("glSamplerParameteriv", vexel::gl_debugger_hook_gl_sampler_parameter_iv, (void*)0);
+    vexel::gl_hooks_set_hook_callback("glSamplerParameterIiv", vexel::gl_debugger_hook_gl_sampler_parameter_Iiv, (void*)0);
+    vexel::gl_hooks_set_hook_callback("glSamplerParameterIuiv", vexel::gl_debugger_hook_gl_sampler_parameter_Iuiv, (void*)0);
     auto version = gladLoadGL(vexel::gl_hooks_gl_hook_proc);
     if(!version)
     {
@@ -167,7 +173,7 @@ int main()
         return -1;
     }
 
-    glEnable(GL_DEBUG_OUTPUT); 
+    glEnable(GL_DEBUG_OUTPUT);
 
     glDebugMessageCallback(my_callback, nullptr);
 
@@ -264,7 +270,7 @@ int main()
                              .minification_filter = vexel::FilteringMode::BILINEAR,
                              .mipmap_filter = vexel::FilteringMode::BILINEAR,
                              .use_mipmaps = false};
-    vexel::Sampler skybox_sampler(skybox_sampler_desc);    
+    vexel::Sampler skybox_sampler(skybox_sampler_desc);
     vexel::Cubemap my_skybox(static_cast<std::uint32_t>(width_skybox), static_cast<std::uint32_t>(height_skybox), vexel::TextureFormat::RGB888_UNORM, false);
     vexel::TextureView my_skybox_view(&my_skybox, &skybox_sampler);
     my_skybox.specify_image(vexel::CubemapFace::POSITIVE_X, data_skybox[0]);
@@ -273,7 +279,7 @@ int main()
     my_skybox.specify_image(vexel::CubemapFace::NEGATIVE_Y, data_skybox[3]);
     my_skybox.specify_image(vexel::CubemapFace::POSITIVE_Z, data_skybox[4]);
     my_skybox.specify_image(vexel::CubemapFace::NEGATIVE_Z, data_skybox[5]);
-    
+
     float skybox_vertices[] = {
         -0.5f, -0.5f, 0.5f,
         0.5f, -0.5f, 0.5f,
@@ -362,7 +368,7 @@ int main()
 
     glShaderSource(skybox_vertex_shader, 1, &skybox_vs_src, nullptr);
     glShaderSource(skybox_fragment_shader, 1, &skybox_fs_src, nullptr);
-    
+
     glCompileShader(skybox_vertex_shader);
     CheckShader(skybox_vertex_shader, "vs");
     glCompileShader(skybox_fragment_shader);
@@ -421,10 +427,10 @@ int main()
             fragColor = texture(tex, uv_out);
         }
     )";
-    
+
     glShaderSource(vertex_shader, 1, &vs_src, nullptr);
     glShaderSource(fragment_shader, 1, &fs_src, nullptr);
-    
+
     glCompileShader(vertex_shader);
     CheckShader(vertex_shader, "vs");
     glCompileShader(fragment_shader);
@@ -473,7 +479,7 @@ int main()
                                              0.0f, 0.0f, 0.0f, 1.0f);
 
     vexel::Matrix4 pizda_other_mat = vexel::Matrix4::transpose(change_of_basis) * other_mat * change_of_basis;
-    
+
     vexel::Rotor rot_30_z = vexel::Rotor(vexel::Vector3(0.0f, 0.0f, 1.0f), M_PI_2 / 3.0f);
     vexel::Rotor rot_other = vexel::Rotor(0.6981317008f, 0.4363323130f, 0.0f, vexel::EulerAnglesOrder::ZYX);
 
@@ -552,7 +558,7 @@ int main()
                 static const float sensetivity = 0.5f;
                 float xrel = -e.motion.xrel; // Because the default is turning counterclockwise, if you subtract from it you're going to end up moving clockwise, which is not what we want, so flip it
                 float yrel = -e.motion.yrel; // SDL has flipped convention
-                
+
                 yaw += xrel * sensetivity * to_rads;
                 pitch += yrel * sensetivity * to_rads;
             }
@@ -564,7 +570,7 @@ int main()
             view_vector = orientation.rotate(vexel::Vector3(0.0f, 0.0f, 1.0f));
             camera_up = orientation.rotate(vexel::Vector3(0.0f, 1.0f, 0.0f));
             camera_right = orientation.rotate(vexel::Vector3(1.0f, 0.0f, 0.0f));
-            
+
             view = vexel::Matrix4(camera_right, camera_up, view_vector);
             view = view.transpose(); // An orthonormal change of basis, has it's inverse just being it's transpose
             view *= view.translate(-pos); // The rightmost entries are not just -pos.x, -pos.y, -pos.z, they're infact the dor products with -pos and the view basis vectors, do
@@ -572,7 +578,7 @@ int main()
                                           // read from right to left
 
             yaw_of_cube += 0.01f;
-            
+
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glBindVertexArray(vao.handle());
@@ -582,7 +588,7 @@ int main()
         glUniformMatrix4fv(model_mat_loc, 1, GL_FALSE, cube_model.data());
         glUniformHandleui64ARB(tex_loc, my_texture_whole_view.bindless_handle());
         glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(indices[0]), GL_UNSIGNED_INT, 0);
-        
+
         glDepthFunc(GL_LEQUAL);
         glBindVertexArray(skybox_vao.handle());
         glUseProgram(skybox_program);
@@ -594,6 +600,10 @@ int main()
 
         SDL_GL_SwapWindow(window);
     }
+
+    // Just to test, yes it works!
+    my_sampler.~Sampler();
+    skybox_sampler.~Sampler();
 
     // This won't capture the deletes because the samplers go out of scope later, down below, when the scope of int main() ends to be exact, but i'm sure they would
     // if we were to delete them beforehand

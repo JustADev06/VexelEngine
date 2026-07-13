@@ -1,1 +1,6 @@
+.cache
 build
+include/vexel/graphics/gl_hooks.h
+src/graphics/gl_hooks.cpp
+deps/glhooksgen/output/gl_hooks.h
+deps/glhooksgen/output/gl_hooks.cpp
